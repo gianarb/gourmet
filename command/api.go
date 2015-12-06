@@ -18,7 +18,7 @@ func (c *ApiCommand) Run(args []string) int {
 	var port string
 
 	cmdFlags := flag.NewFlagSet("event", flag.ContinueOnError)
-	cmdFlags.StringVar(&port, "port", ":8080", "port")
+	cmdFlags.StringVar(&port, "port", ":8000", "port")
 	if err := cmdFlags.Parse(args); err != nil {
 		fmt.Println(err)
 	}
