@@ -32,8 +32,6 @@ func (dr *DockerRunner) BuildContainer() (string, error) {
 		return "", err;
 	}
 
-	dr.Logger.Write([]byte(fmt.Sprintf("Started container %s", container.ID)))
-
 	err = dr.Docker.StartContainer(
 		container.ID,
 		&docker.HostConfig{
@@ -90,6 +88,5 @@ func (dr *DockerRunner) RemoveContainer(containerId string) error {
 		return err;
 	}
 
-	dr.Logger.Write([]byte(fmt.Sprintf("Contianer deleted")))
 	return nil
 }
