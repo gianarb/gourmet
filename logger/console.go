@@ -1,11 +1,11 @@
 package logger
 
-import "log"
+import "fmt"
 
 type Console struct {
 }
 
 func (r Console) Write(data []byte) (n int, err error) {
-	log.Printf("%s", string(data))
+	fmt.Printf("%s", string(data))
 	return len(data), nil
 }
