@@ -11,7 +11,7 @@ wget <your-source-zip>
 unzip  <your-source-zip>.zip -d .
 bin/console
 ```
-`bin/console` is the console entrypoint it should be executable from php.
+`bin/console` is the console entrypoint of your application, it should be executable from php.
 
 ### Implementation
 gourmet is a cli application that start an http server to start new build.
