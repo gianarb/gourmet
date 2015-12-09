@@ -8,7 +8,7 @@ import (
 
 type DockerRunner struct {
 	Docker *docker.Client
-	Logger io.Writer
+	Stream io.Writer
 }
 
 func (dr *DockerRunner) BuildContainer() (string, error) {
@@ -64,8 +64,8 @@ func (dr *DockerRunner) Exec(containerId string, command []string) (error) {
 		Detach:      false,
 		Tty:         false,
 		RawTerminal: true,
-		OutputStream: dr.Logger,
-		ErrorStream:  dr.Logger,
+		OutputStream: dr.Stream,
+		ErrorStream:  dr.Stream,
 	})
 
 	//inspect, err := dr.Docker.InspectExec(exec.ID)

@@ -3,8 +3,8 @@ package main
 import (
 	dockerRun "github.com/gianarb/gourmet/runner/docker"
 	"github.com/mitchellh/cli"
-	"github.com/gianarb/gourmet/logger"
 	"github.com/gianarb/gourmet/command"
+	"github.com/gianarb/gourmet/runner/stream"
 	"github.com/fsouza/go-dockerclient"
 	"os"
 )
@@ -19,7 +19,7 @@ func main() {
 		"/Users/garbezzano/.docker/machine/machines/default/key.pem",
 		"/Users/garbezzano/.docker/machine/machines/default/ca.pem")
 
-	dockerRunner := dockerRun.DockerRunner{client, logger.Console{}}
+	dockerRunner := dockerRun.DockerRunner{client, stream.ConsoleStream{}}
 
     c.Commands = map[string]cli.CommandFactory{
         "api": func() (cli.Command, error) {
