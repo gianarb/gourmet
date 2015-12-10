@@ -1,11 +1,13 @@
 package stream
 
-import "fmt"
+import (
+	"github.com/mitchellh/colorstring"
+)
 
 type ConsoleStream struct {
 }
 
 func (r ConsoleStream) Write(data []byte) (n int, err error) {
-	fmt.Printf("%s \n", string(data))
+	colorstring.Printf("[blue]%s \n", string(data))
 	return len(data), nil
 }
