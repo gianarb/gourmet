@@ -2,16 +2,17 @@ package command
 
 import (
 	"net/http"
-	"fmt"
     "github.com/gorilla/mux"
 	"strings"
 	"flag"
 	"github.com/gianarb/gourmet/runner"
 	"github.com/gianarb/gourmet/api"
+	"log"
 )
 
 type ApiCommand struct {
 	Runner runner.Runner
+	Logger *log.Logger
 }
 
 func (c *ApiCommand) Run(args []string) int {
@@ -19,12 +20,15 @@ func (c *ApiCommand) Run(args []string) int {
 
 	cmdFlags := flag.NewFlagSet("event", flag.ContinueOnError)
 	cmdFlags.StringVar(&port, "port", ":8000", "port")
+
 	if err := cmdFlags.Parse(args); err != nil {
-		fmt.Println(err)
+		c.Logger.Fatal(err)
 	}
 
+	c.Logger.Print("API Server run on port ", port)
+
 	r := mux.NewRouter()
-    r.HandleFunc("/project", api.ProjectHandler(c.Runner)).Methods("POST")
+    r.HandleFunc("/project", api.ProjectHandler(c.Runner, c.Logger)).Methods("POST")
     http.ListenAndServe(port, r)
 
 	return 0
