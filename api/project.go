@@ -9,6 +9,8 @@ import (
 
 type StartBuildRequest struct {
 	Source string
+	Img string
+	Env []string
 }
 
 func ProjectHandler (runner runner.Runner, logger *log.Logger) func(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +19,7 @@ func ProjectHandler (runner runner.Runner, logger *log.Logger) func(w http.Respo
 		var t StartBuildRequest
 		decoder.Decode(&t)
 
-		containerId, err := runner.BuildContainer()
+		containerId, err := runner.BuildContainer(t.Img, t.Env)
 		if err != nil {
 			logger.Fatal(err)
 		}
