@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"fmt"
 	"io"
 	"github.com/fsouza/go-dockerclient"
 )
@@ -11,19 +10,17 @@ type DockerRunner struct {
 	Stream io.Writer
 }
 
-func (dr *DockerRunner) BuildContainer() (string, error) {
-
-	var env = []string{}
+func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
 
 	container, err := dr.Docker.CreateContainer(docker.CreateContainerOptions{
 		"",
 		&docker.Config{
-			Image:        "gourmet/php",
+			Image:        img,
 			Cmd:          []string{"sleep", "1000"},
 			WorkingDir:   "/tmp",
 			AttachStdout: false,
 			AttachStderr: false,
-			Env:          env,
+			Env:          envVars,
 		},
 		nil,
 	})
@@ -39,7 +36,6 @@ func (dr *DockerRunner) BuildContainer() (string, error) {
 		},
 	)
 	if err != nil {
-		fmt.Printf("%s \n", err)
 		return "", err;
 	}
 	return container.ID, nil;
