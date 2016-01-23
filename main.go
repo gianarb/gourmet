@@ -8,6 +8,7 @@ import (
 	"github.com/gianarb/gourmet/runner/stream"
 	"github.com/fsouza/go-dockerclient"
 	"log"
+	"bytes"
 	"os"
 )
 
@@ -22,7 +23,9 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	dockerRunner := dockerRun.DockerRunner{client, stream.ConsoleStream{}}
+	b := new(bytes.Buffer)
+	s := stream.BufferStream{b}
+	dockerRunner := dockerRun.DockerRunner{client, s}
 
     c.Commands = map[string]cli.CommandFactory{
         "api": func() (cli.Command, error) {

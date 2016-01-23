@@ -1,13 +1,17 @@
 package docker
 
 import (
-	"io"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/gianarb/gourmet/runner/stream"
 )
 
 type DockerRunner struct {
 	Docker *docker.Client
-	Stream io.Writer
+	Stream stream.BufferStream
+}
+
+func (dr *DockerRunner) GetStream() (stream.BufferStream) {
+	return dr.Stream
 }
 
 func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
