@@ -5,7 +5,7 @@ import (
 )
 
 type Runner interface {
-	BuildContainer(img string, envVars []string, cmd []string) (string, error)
+	BuildContainer(img string, envVars []string) (string, error)
 	Exec(containerId string, command []string) error
 	CommitContainer(containerId string) (string, error)
 	RemoveContainer(containerId string) error

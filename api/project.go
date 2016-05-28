@@ -11,7 +11,6 @@ import (
 type StartBuildRequest struct {
 	Source string
 	Img    string
-	Env    []string
 }
 
 type ProjectResponse struct {
@@ -28,7 +27,7 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 		var t StartBuildRequest
 		decoder.Decode(&t)
 
-		containerId, err := runner.BuildContainer(t.Img, t.Env, []string{"sleep", "1000"})
+		containerId, err := runner.BuildContainer(t.Img, []string{})
 		if err != nil {
 			w.WriteHeader(500)
 			errStruct := Error{err, 4321}

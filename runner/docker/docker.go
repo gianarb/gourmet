@@ -32,11 +32,11 @@ func (dr *DockerRunner) CommitContainer(id string) (string, error) {
 	return img.ID, nil
 }
 
-func (dr *DockerRunner) BuildContainer(img string, envVars []string, cmd []string) (string, error) {
+func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
 	container, err := dr.Docker.CreateContainer(docker.CreateContainerOptions{
 		Name: "",
 		Config: &docker.Config{
-			Cmd:          cmd,
+			Cmd:          []string{"sleep", "1000"},
 			Image:        img,
 			WorkingDir:   "/root",
 			AttachStdout: false,
