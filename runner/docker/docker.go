@@ -1,6 +1,11 @@
 package docker
 
 import (
+	"fmt"
+	"math/rand"
+	"net/url"
+	"os"
+
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gianarb/gourmet/runner/stream"
 )
@@ -15,21 +20,19 @@ func (dr *DockerRunner) GetStream() stream.BufferStream {
 }
 
 func (dr *DockerRunner) CommitContainer(id string) (string, error) {
-	container, err := dr.Docker.InspectContainer(id)
-	container.Config.Cmd = []string{"bin/console"}
-	container.Config.Entrypoint = []string{"bin/console"}
+	id, err := dr.commit(id)
 	if err != nil {
 		return "", err
 	}
-	opt := docker.CommitContainerOptions{
-		Container: container.ID,
-		Run:       container.Config,
+	if os.Getenv("GOURMET_REGISTRY_URL") != "" {
+		u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
+		name := fmt.Sprintf("%s/%s", u, id)
+		err = dr.push(name)
+		if err != nil {
+			return "", err
+		}
 	}
-	img, err := dr.Docker.CommitContainer(opt)
-	if err != nil {
-		return "", err
-	}
-	return img.ID, nil
+	return id, nil
 }
 
 func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
@@ -94,4 +97,43 @@ func (dr *DockerRunner) RemoveContainer(containerId string) error {
 	}
 
 	return nil
+}
+
+func (dr *DockerRunner) push(name string) error {
+	opt := docker.PushImageOptions{
+		Name: name,
+		Tag:  "latest",
+	}
+	auth := docker.AuthConfiguration{}
+	err := dr.Docker.PushImage(opt, auth)
+	return err
+}
+
+func (dr *DockerRunner) commit(id string) (string, error) {
+	container, err := dr.Docker.InspectContainer(id)
+	container.Config.Cmd = []string{"bin/console"}
+	container.Config.Entrypoint = []string{"bin/console"}
+	name := fmt.Sprintf("gourmet/%s", randStringRunes(10))
+	if err != nil {
+		return "", err
+	}
+	opt := docker.CommitContainerOptions{
+		Container:  container.ID,
+		Repository: name,
+		Run:        container.Config,
+	}
+	_, err = dr.Docker.CommitContainer(opt)
+	if err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
+func randStringRunes(n int) string {
+	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
