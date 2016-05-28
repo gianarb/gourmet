@@ -1,13 +1,39 @@
-# Gourmet
-## script is served
-Gourmet is a work in progress project written in go to run your code "as a service".  
-The idea is easy, ping an endpoint and something runs your code.
+# Lambda function manager
+Gourmet runs your code "as a service". Lambda function manager written in
+golang and based on docker.
 
-This is an example of HTTP Body
+## Implementation
+gourmet is a cli application that start an http server to start new build.
+
+```bash
+./gourmet api
+```
+After this command your server is ready to go on port 8000.
+
+## API
+
 ```json
+POST /project
+
 {
     "img": "gourmet/php",
     "source": "https://ramdom-your-source.net/gourmet.zip",
+}
+```
+* `img` is the name of docker image to use how started point
+* `source` is the artifact of your script, it should be contain an executable console entrypoint `bin/console`
+This function return the function's id `RunId`
+```
+{
+    "RunId": "34gaw23t2"
+}
+```
+
+
+```json
+POST /run/{RunId}
+
+{
     "env": [
         "AWS_KEY=EXAMPLE",
         "AWS_SECRET=",
@@ -15,11 +41,15 @@ This is an example of HTTP Body
     ]
 }
 ```
-
-* `img` is the name of docker image to use how started point
-* `source` is the artifact of your script, it should be contain an executable console entrypoint `bin/console`
 * `evn` are environment varaibles, you can use them to configure your script
+This function return status of our function
+```
+{
+    "Logs": "information about our function"
+}
+```
 
+## How it works
 gourmet prepares your container, downloads source and executes this steps:
 ```bash
 wget <your-source-zip>
@@ -28,23 +58,6 @@ bin/console
 ```
 
 `bin/console` is the console entrypoint of your scirpt, it should be executable.
-
-### Implementation
-gourmet is a cli application that start an http server to start new build.
-
-```bash
-./gourmet api
-```
-After this command your server is ready to go on port 8000.
-
-### HTTP Api
-
-Start build with a `POST` request on `/project`.
-```
-{
-    "source": "http://site.net/static/my-script.zip
-}
-```
 
 ### Troubleshooting
 * In this repository you can try an example of docker image (PHP7) build it and go!
