@@ -27,16 +27,12 @@ func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWr
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
 		if !ok {
-			w.WriteHeader(404)
-			errStruct := Error{errors.New("id is required"), 4321}
-			w.Write(errStruct.ToJson())
+			errorRender(404, 4313, errors.New("id is required"), w)
 			return
 		}
 		cId, err := runner.BuildContainer(id, t.Env)
 		if err != nil {
-			w.WriteHeader(500)
-			errStruct := Error{errors.New("id is required"), 4321}
-			w.Write(errStruct.ToJson())
+			errorRender(500, 4312, errors.New("id is required"), w)
 			return
 		}
 		runner.Exec(cId, []string{"bin/console"})

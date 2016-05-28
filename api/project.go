@@ -29,9 +29,7 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 
 		containerId, err := runner.BuildContainer(t.Img, []string{})
 		if err != nil {
-			w.WriteHeader(500)
-			errStruct := Error{err, 4321}
-			w.Write(errStruct.ToJson())
+			errorRender(500, 4311, err, w)
 			return
 		}
 		logger.Printf("Build %s started - source %s", containerId[0:12], t.Img)
@@ -39,14 +37,13 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 		runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
 		image, err := runner.CommitContainer(containerId)
 		if err != nil {
-			w.WriteHeader(500)
-			errStruct := Error{err, 4321}
-			w.Write(errStruct.ToJson())
+			errorRender(500, 4310, err, w)
 			return
 		}
 		runner.RemoveContainer(containerId)
 
 		logger.Printf("Container %s :: \n %s :: \n", containerId[0:12], runner.GetStream().String())
+
 		responseStruct.Logs = runner.GetStream().String()
 		logger.Printf("Build %s removed", containerId[0:12])
 		responseStruct.RunId = image[7:19]
