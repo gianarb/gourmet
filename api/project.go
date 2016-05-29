@@ -43,8 +43,18 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 			}
 		}
 		logger.Printf("Build %s started - source %s", containerId, t.Img)
-		runner.Exec(containerId, []string{"wget", t.Source})
-		runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
+		g, b, err := runner.Exec(containerId, []string{"wget", t.Source})
+		logger.Printf("Container %s :: \n %s :: \n", containerId, g.String())
+		if err != nil {
+			logger.Printf("Container %s :: \n %s :: \n", containerId, b.String())
+			logger.Printf("Container %s :: \n %s :: \n", containerId, err)
+		}
+		g, b, err = runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
+		if err != nil {
+			logger.Printf("Container %s :: \n %s :: \n", containerId, b.String())
+			logger.Printf("Container %s :: \n %s :: \n", containerId, err)
+		}
+		logger.Printf("Container %s :: \n %s :: \n", containerId, g.String())
 		image, err := runner.CommitContainer(containerId)
 		if err != nil {
 			logger.Printf("%s", err)
@@ -53,7 +63,6 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 			return
 		}
 		runner.RemoveContainer(containerId)
-		logger.Printf("Container %s :: \n %s :: \n", containerId, runner.GetStream().String())
 		logger.Printf("Build %s removed", containerId)
 		responseStruct.RunId = image
 		json, _ := json.Marshal(responseStruct)
