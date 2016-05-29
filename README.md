@@ -10,6 +10,10 @@ gourmet is a cli application that start an http server to start new build.
 ```
 After this command your server is ready to go on port 8000.
 
+### Env vars
+`GOURMET_REGISTRY_URL` allow registry push and pull in order to
+manage more gourmet.
+
 ## API
 
 ```json

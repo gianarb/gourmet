@@ -8,6 +8,7 @@ type Runner interface {
 	BuildContainer(img string, envVars []string) (string, error)
 	Exec(containerId string, command []string) error
 	CommitContainer(containerId string) (string, error)
+	PullImage(repository string) error
 	RemoveContainer(containerId string) error
 	GetStream() stream.BufferStream
 }

@@ -1,6 +1,11 @@
 package docker
 
 import (
+	"fmt"
+	"math/rand"
+	"net/url"
+	"os"
+
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gianarb/gourmet/runner/stream"
 )
@@ -15,21 +20,30 @@ func (dr *DockerRunner) GetStream() stream.BufferStream {
 }
 
 func (dr *DockerRunner) CommitContainer(id string) (string, error) {
-	container, err := dr.Docker.InspectContainer(id)
-	container.Config.Cmd = []string{"bin/console"}
-	container.Config.Entrypoint = []string{"bin/console"}
+	imageId, err := dr.commit(id)
 	if err != nil {
 		return "", err
 	}
-	opt := docker.CommitContainerOptions{
-		Container: container.ID,
-		Run:       container.Config,
+	if os.Getenv("GOURMET_REGISTRY_URL") != "" {
+		u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
+		err = dr.tag(imageId, u)
+		if err != nil {
+			return "", err
+		}
+		err = dr.push(fmt.Sprintf("%s/%s", u, imageId))
+		if err != nil {
+			return "", err
+		}
 	}
-	img, err := dr.Docker.CommitContainer(opt)
+	return imageId, nil
+}
+
+func (dr *DockerRunner) PullImage(id string) error {
+	err := dr.pull(id)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return img.ID, nil
+	return nil
 }
 
 func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
@@ -94,4 +108,61 @@ func (dr *DockerRunner) RemoveContainer(containerId string) error {
 	}
 
 	return nil
+}
+
+func (dr *DockerRunner) pull(name string) error {
+	opt := docker.PullImageOptions{
+		Repository: name,
+		Tag:        "latest",
+	}
+	auth := docker.AuthConfiguration{}
+	err := dr.Docker.PullImage(opt, auth)
+	return err
+}
+
+func (dr *DockerRunner) push(name string) error {
+	opt := docker.PushImageOptions{
+		Name: name,
+		Tag:  "latest",
+	}
+	auth := docker.AuthConfiguration{}
+	err := dr.Docker.PushImage(opt, auth)
+	return err
+}
+
+func (dr *DockerRunner) commit(id string) (string, error) {
+	container, err := dr.Docker.InspectContainer(id)
+	container.Config.Cmd = []string{"bin/console"}
+	container.Config.Entrypoint = []string{"bin/console"}
+	name := fmt.Sprintf("%s", randStringRunes(10))
+	if err != nil {
+		return "", err
+	}
+	opt := docker.CommitContainerOptions{
+		Container:  container.ID,
+		Repository: name,
+		Run:        container.Config,
+	}
+	_, err = dr.Docker.CommitContainer(opt)
+	if err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
+func (dr *DockerRunner) tag(image string, u *url.URL) error {
+	opt := docker.TagImageOptions{
+		Repo: fmt.Sprintf("%s/%s", u, image),
+		Tag:  "latest",
+	}
+	return dr.Docker.TagImage(image, opt)
+}
+
+func randStringRunes(n int) string {
+	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
