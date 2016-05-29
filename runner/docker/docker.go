@@ -39,12 +39,9 @@ func (dr *DockerRunner) CommitContainer(id string) (string, error) {
 }
 
 func (dr *DockerRunner) PullImage(id string) error {
-	if os.Getenv("GOURMET_REGISTRY_URL") != "" {
-		u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
-		err := dr.pull(fmt.Sprintf("%s/%s", u, id))
-		if err != nil {
-			return err
-		}
+	err := dr.pull(id)
+	if err != nil {
+		return err
 	}
 	return nil
 }

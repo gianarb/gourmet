@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/gianarb/gourmet/runner"
@@ -37,8 +36,7 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 				errorRender(500, 4312, err, w)
 				return
 			}
-			u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
-			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", u, t.Img), []string{})
+			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", os.Getenv("GOURMET_REGISTRY_URL"), t.Img), []string{})
 			if err != nil {
 				errorRender(500, 4317, err, w)
 				return
