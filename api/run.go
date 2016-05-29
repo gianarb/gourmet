@@ -21,8 +21,7 @@ type RunRequest struct {
 
 func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		responseStruct := RunResponse{}
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/text")
 		decoder := json.NewDecoder(r.Body)
 		var t RunRequest
 		decoder.Decode(&t)
@@ -50,11 +49,8 @@ func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWr
 		}
 		runner.Exec(cId, []string{"bin/console"})
 		runner.RemoveContainer(cId)
-		responseStruct.Logs = runner.GetStream().String()
 		logger.Printf("Container %s :: \n %s :: \n", cId[0:12], runner.GetStream().String())
-
-		json, _ := json.Marshal(responseStruct)
 		w.WriteHeader(200)
-		w.Write(json)
+		w.Write([]byte(runner.GetStream().String()))
 	}
 }
