@@ -48,9 +48,7 @@ POST /run/{RunId}
 * `evn` are environment varaibles, you can use them to configure your script
 This function return status of our function
 ```
-{
-    "Logs": "information about our function"
-}
+At the moment caos but I am working on it
 ```
 
 ## How it works
