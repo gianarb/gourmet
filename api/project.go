@@ -2,8 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 
 	"github.com/gianarb/gourmet/runner"
 )
@@ -29,10 +32,19 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 
 		containerId, err := runner.BuildContainer(t.Img, []string{})
 		if err != nil {
-			errorRender(500, 4311, err, w)
-			return
+			err := runner.PullImage(t.Img)
+			if err != nil {
+				errorRender(500, 4312, err, w)
+				return
+			}
+			u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
+			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", u, t.Img), []string{})
+			if err != nil {
+				errorRender(500, 4317, err, w)
+				return
+			}
 		}
-		logger.Printf("Build %s started - source %s", containerId[0:12], t.Img)
+		logger.Printf("Build %s started - source %s", containerId, t.Img)
 		runner.Exec(containerId, []string{"wget", t.Source})
 		runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
 		image, err := runner.CommitContainer(containerId)
@@ -43,10 +55,10 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 		}
 		runner.RemoveContainer(containerId)
 
-		logger.Printf("Container %s :: \n %s :: \n", containerId[0:12], runner.GetStream().String())
+		logger.Printf("Container %s :: \n %s :: \n", containerId, runner.GetStream().String())
 
 		responseStruct.Logs = runner.GetStream().String()
-		logger.Printf("Build %s removed", containerId[0:12])
+		logger.Printf("Build %s removed", containerId)
 		responseStruct.RunId = image
 		json, _ := json.Marshal(responseStruct)
 		w.WriteHeader(200)

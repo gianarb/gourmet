@@ -20,19 +20,33 @@ func (dr *DockerRunner) GetStream() stream.BufferStream {
 }
 
 func (dr *DockerRunner) CommitContainer(id string) (string, error) {
-	id, err := dr.commit(id)
+	imageId, err := dr.commit(id)
 	if err != nil {
 		return "", err
 	}
 	if os.Getenv("GOURMET_REGISTRY_URL") != "" {
 		u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
-		name := fmt.Sprintf("%s/%s", u, id)
-		err = dr.push(name)
+		err = dr.tag(imageId, u)
+		if err != nil {
+			return "", err
+		}
+		err = dr.push(fmt.Sprintf("%s/%s", u, imageId))
 		if err != nil {
 			return "", err
 		}
 	}
-	return id, nil
+	return imageId, nil
+}
+
+func (dr *DockerRunner) PullImage(id string) error {
+	if os.Getenv("GOURMET_REGISTRY_URL") != "" {
+		u, _ := url.Parse(os.Getenv("GOURMET_REGISTRY_URL"))
+		err := dr.pull(fmt.Sprintf("%s/%s", u, id))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
@@ -99,6 +113,16 @@ func (dr *DockerRunner) RemoveContainer(containerId string) error {
 	return nil
 }
 
+func (dr *DockerRunner) pull(name string) error {
+	opt := docker.PullImageOptions{
+		Repository: name,
+		Tag:        "latest",
+	}
+	auth := docker.AuthConfiguration{}
+	err := dr.Docker.PullImage(opt, auth)
+	return err
+}
+
 func (dr *DockerRunner) push(name string) error {
 	opt := docker.PushImageOptions{
 		Name: name,
@@ -113,7 +137,7 @@ func (dr *DockerRunner) commit(id string) (string, error) {
 	container, err := dr.Docker.InspectContainer(id)
 	container.Config.Cmd = []string{"bin/console"}
 	container.Config.Entrypoint = []string{"bin/console"}
-	name := fmt.Sprintf("gourmet/%s", randStringRunes(10))
+	name := fmt.Sprintf("%s", randStringRunes(10))
 	if err != nil {
 		return "", err
 	}
@@ -127,6 +151,14 @@ func (dr *DockerRunner) commit(id string) (string, error) {
 		return "", err
 	}
 	return name, nil
+}
+
+func (dr *DockerRunner) tag(image string, u *url.URL) error {
+	opt := docker.TagImageOptions{
+		Repo: fmt.Sprintf("%s/%s", u, image),
+		Tag:  "latest",
+	}
+	return dr.Docker.TagImage(image, opt)
 }
 
 func randStringRunes(n int) string {

@@ -32,12 +32,21 @@ func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWr
 		}
 		cId, err := runner.BuildContainer(id, t.Env)
 		if err != nil {
-			errorRender(500, 4312, errors.New("id is required"), w)
-			return
+			err := runner.PullImage(id)
+			if err != nil {
+				errorRender(500, 4312, err, w)
+				return
+			}
+			_, err = runner.BuildContainer(id, t.Env)
+			if err != nil {
+				errorRender(500, 4317, err, w)
+				return
+			}
 		}
 		runner.Exec(cId, []string{"bin/console"})
 		runner.RemoveContainer(cId)
 		responseStruct.Logs = runner.GetStream().String()
+		logger.Printf("Container %s :: \n %s :: \n", cId[0:12], runner.GetStream().String())
 
 		json, _ := json.Marshal(responseStruct)
 		w.WriteHeader(200)
