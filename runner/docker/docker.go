@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -12,11 +13,6 @@ import (
 
 type DockerRunner struct {
 	Docker *docker.Client
-	Stream stream.BufferStream
-}
-
-func (dr *DockerRunner) GetStream() stream.BufferStream {
-	return dr.Stream
 }
 
 func (dr *DockerRunner) CommitContainer(id string) (string, error) {
@@ -75,7 +71,9 @@ func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, er
 	return container.ID, nil
 }
 
-func (dr *DockerRunner) Exec(containerId string, command []string) error {
+func (dr *DockerRunner) Exec(containerId string, command []string) (*stream.BufferStream, *stream.BufferStream, error) {
+	oStream := stream.BufferStream{&bytes.Buffer{}}
+	eStream := stream.BufferStream{&bytes.Buffer{}}
 	exec, err := dr.Docker.CreateExec(docker.CreateExecOptions{
 		Container:    containerId,
 		AttachStdin:  true,
@@ -85,19 +83,19 @@ func (dr *DockerRunner) Exec(containerId string, command []string) error {
 		Cmd:          command,
 	})
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	err = dr.Docker.StartExec(exec.ID, docker.StartExecOptions{
 		Detach:       false,
 		Tty:          false,
 		RawTerminal:  true,
-		OutputStream: dr.Stream,
-		ErrorStream:  dr.Stream,
+		OutputStream: oStream,
+		ErrorStream:  eStream,
 	})
 	if err != nil {
-		return err
+		return nil, &eStream, err
 	}
-	return nil
+	return &oStream, nil, nil
 }
 
 func (dr *DockerRunner) RemoveContainer(containerId string) error {
