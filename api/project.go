@@ -17,7 +17,6 @@ type StartBuildRequest struct {
 
 type ProjectResponse struct {
 	RunId string
-	Logs  string
 }
 
 func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWriter, r *http.Request) {
@@ -54,10 +53,7 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 			return
 		}
 		runner.RemoveContainer(containerId)
-
 		logger.Printf("Container %s :: \n %s :: \n", containerId, runner.GetStream().String())
-
-		responseStruct.Logs = runner.GetStream().String()
 		logger.Printf("Build %s removed", containerId)
 		responseStruct.RunId = image
 		json, _ := json.Marshal(responseStruct)
