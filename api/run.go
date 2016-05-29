@@ -47,10 +47,12 @@ func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWr
 				return
 			}
 		}
+		logger.Printf("Container %s created", cId)
 		runner.Exec(cId, []string{"bin/console"})
 		runner.RemoveContainer(cId)
-		logger.Printf("Container %s :: \n %s :: \n", cId[0:12], runner.GetStream().String())
+		logger.Printf("Container %s :: \n %s :: \n", cId, runner.GetStream().String())
 		w.WriteHeader(200)
+		logger.Printf("Container %s deleted", cId)
 		w.Write([]byte(runner.GetStream().String()))
 	}
 }

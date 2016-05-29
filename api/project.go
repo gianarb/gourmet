@@ -39,6 +39,7 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", os.Getenv("GOURMET_REGISTRY_URL"), t.Img), []string{})
 			if err != nil {
 				errorRender(500, 4317, err, w)
+				runner.RemoveContainer(containerId)
 				return
 			}
 		}
@@ -49,6 +50,7 @@ func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.Respon
 		if err != nil {
 			logger.Printf("%s", err)
 			errorRender(500, 4310, err, w)
+			runner.RemoveContainer(containerId)
 			return
 		}
 		runner.RemoveContainer(containerId)
