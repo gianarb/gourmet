@@ -9,11 +9,14 @@ import (
 	"os"
 
 	"github.com/gianarb/gourmet/runner"
+	"github.com/gianarb/gourmet/runner/stream"
 	"github.com/gorilla/mux"
 )
 
-type RunResponse struct {
-	Logs string
+type ContextMapper struct {
+	StatusCode int
+	Body       []byte
+	Headers    map[string]string
 }
 type RunRequest struct {
 	Env []string
@@ -21,7 +24,7 @@ type RunRequest struct {
 
 func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/text")
+		w.Header().Set("Content-Type", "application/json")
 		decoder := json.NewDecoder(r.Body)
 		var t RunRequest
 		decoder.Decode(&t)
@@ -55,8 +58,25 @@ func RunHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWr
 		}
 		logger.Printf("Container %s :: \n %s :: \n", cId, g.String())
 		runner.RemoveContainer(cId)
-		w.WriteHeader(200)
 		logger.Printf("Container %s deleted", cId)
-		w.Write([]byte(g.String()))
+
+		writeResponseFromStdOutput(g, w)
 	}
+}
+
+func writeResponseFromStdOutput(g *stream.BufferStream, w http.ResponseWriter) {
+	context := ContextMapper{}
+	err := json.Unmarshal([]byte(g.String()), &context)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%t", context)
+	if context.StatusCode == 0 {
+		context.StatusCode = 200
+	}
+	for h, v := range context.Headers {
+		w.Header().Set(h, v)
+	}
+	w.WriteHeader(context.StatusCode)
+	w.Write(context.Body)
 }
