@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gianarb/gourmet/runner"
 )
 
@@ -19,51 +19,80 @@ type ProjectResponse struct {
 	RunId string
 }
 
-func ProjectHandler(runner runner.Runner, logger *log.Logger) func(w http.ResponseWriter, r *http.Request) {
+func ProjectHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		responseStruct := ProjectResponse{}
 		w.Header().Set("Content-Type", "application/json")
+		registry := os.Getenv("GOURMET_REGISTRY_URL")
+		if registry == "" {
+			registry = "hub.docker.com"
+		}
 
 		decoder := json.NewDecoder(r.Body)
 		var t StartBuildRequest
 		decoder.Decode(&t)
 
+		logrus.Infof("Started new build %s", t.Img)
+
 		containerId, err := runner.BuildContainer(t.Img, []string{})
 		if err != nil {
 			err := runner.PullImage(t.Img)
 			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"error": err,
+				}).Warnf("Impossibile to download %s from the registry", t.Img)
 				errorRender(500, 4312, err, w)
 				return
 			}
-			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", os.Getenv("GOURMET_REGISTRY_URL"), t.Img), []string{})
+			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", registry, t.Img), []string{})
 			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"error": err,
+				}).Warnf("Impossibile to create a new container from this image %s", t.Img)
 				errorRender(500, 4317, err, w)
 				runner.RemoveContainer(containerId)
 				return
 			}
 		}
-		logger.Printf("Build %s started - source %s", containerId, t.Img)
-		g, b, err := runner.Exec(containerId, []string{"wget", t.Source})
-		logger.Printf("Container %s :: \n %s :: \n", containerId, g.String())
+
+		_, _, err = runner.Exec(containerId, []string{"wget", t.Source})
+
+		logrus.WithFields(logrus.Fields{
+			"container": containerId,
+		}).Info("Function downloaded")
+
 		if err != nil {
-			logger.Printf("Container %s :: \n %s :: \n", containerId, b.String())
-			logger.Printf("Container %s :: \n %s :: \n", containerId, err)
+			logrus.WithFields(logrus.Fields{
+				"container": containerId,
+				"error":     err,
+			}).Warnf("We had a problem to download your source, please check your link %s", t.Source)
 		}
-		g, b, err = runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
+		_, _, err = runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
 		if err != nil {
-			logger.Printf("Container %s :: \n %s :: \n", containerId, b.String())
-			logger.Printf("Container %s :: \n %s :: \n", containerId, err)
+			logrus.WithFields(logrus.Fields{
+				"container": containerId,
+				"error":     err,
+			}).Warn("We can not unzip your source")
 		}
-		logger.Printf("Container %s :: \n %s :: \n", containerId, g.String())
+
+		logrus.WithFields(logrus.Fields{
+			"container": containerId,
+		}).Info("Build completed")
+
 		image, err := runner.CommitContainer(containerId)
 		if err != nil {
-			logger.Printf("%s", err)
+			logrus.WithFields(logrus.Fields{
+				"container": containerId,
+				"error":     err,
+			}).Warn("We can not push this container to the registry")
 			errorRender(500, 4310, err, w)
 			runner.RemoveContainer(containerId)
 			return
 		}
 		runner.RemoveContainer(containerId)
-		logger.Printf("Build %s removed", containerId)
+		logrus.WithFields(logrus.Fields{
+			"container": containerId,
+		}).Info("Container removed")
 		responseStruct.RunId = image
 		json, _ := json.Marshal(responseStruct)
 		w.WriteHeader(200)

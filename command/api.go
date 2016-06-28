@@ -2,10 +2,10 @@ package command
 
 import (
 	"flag"
-	"log"
 	"net/http"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gianarb/gourmet/api"
 	"github.com/gianarb/gourmet/runner"
 	"github.com/gorilla/mux"
@@ -13,7 +13,6 @@ import (
 
 type ApiCommand struct {
 	Runner runner.Runner
-	Logger *log.Logger
 }
 
 func (c *ApiCommand) Run(args []string) int {
@@ -21,13 +20,13 @@ func (c *ApiCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("event", flag.ContinueOnError)
 	cmdFlags.StringVar(&port, "port", ":8000", "port")
 	if err := cmdFlags.Parse(args); err != nil {
-		c.Logger.Fatal(err)
+		logrus.WithField("error", err).Warn("Problem to parse arguments")
 	}
-	c.Logger.Print("API Server run on port ", port)
+	logrus.Infof("API Server run on port %s", port)
 	r := mux.NewRouter()
-	r.HandleFunc("/project", api.ProjectHandler(c.Runner, c.Logger)).Methods("POST")
-	r.HandleFunc("/run/{id}", api.RunHandler(c.Runner, c.Logger)).Methods("POST")
-	r.HandleFunc("/ping", api.PingHandler(c.Logger)).Methods("GET")
+	r.HandleFunc("/project", api.ProjectHandler(c.Runner)).Methods("POST")
+	r.HandleFunc("/run/{id}", api.RunHandler(c.Runner)).Methods("POST")
+	r.HandleFunc("/ping", api.PingHandler()).Methods("GET")
 	http.ListenAndServe(port, r)
 	return 0
 }
