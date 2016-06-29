@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "start build",
+			"name": "Create Func",
 			"request": {
 				"url": "http://localhost:8000/func",
 				"method": "POST",
@@ -42,6 +42,26 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Func",
+			"request": {
+				"url": "http://localhost:8000/func/xvlbzgbaic",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
 				},
 				"description": ""
 			},
