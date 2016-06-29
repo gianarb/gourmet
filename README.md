@@ -17,7 +17,7 @@ manage more gourmet.
 ## API
 
 ```json
-POST /project
+POST /func
 
 {
     "img": "gourmet/php",
@@ -35,7 +35,7 @@ This function return the function's id `RunId`
 
 
 ```json
-POST /run/{RunId}
+POST /func/{RunId}
 
 {
     "env": [

@@ -34,17 +34,9 @@ func RunHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Reques
 		if os.Getenv("GOURMET_REGISTRY_URL") != "" {
 			imageName = fmt.Sprintf("%s/%s", os.Getenv("GOURMET_REGISTRY_URL"), imageName)
 		}
+		logrus.Infof("Run function from image %s", imageName)
 		cId, err := runner.BuildContainer(imageName, t.Env)
 		if err != nil {
-			err := runner.PullImage(imageName)
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-				}).Warnf("Function not fund")
-				errorRender(500, 4312, err, w)
-				return
-			}
-			cId, err = runner.BuildContainer(imageName, t.Env)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,

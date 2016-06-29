@@ -1,0 +1,51 @@
+{
+	"variables": [],
+	"info": {
+		"name": "gourmet",
+		"_postman_id": "18c053ee-2b13-cb41-27c7-b96d85c71885",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "start build",
+			"request": {
+				"url": "http://localhost:8000/func",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "ping",
+			"request": {
+				"url": "http://localhost:8000/ping",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
