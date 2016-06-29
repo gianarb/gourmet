@@ -26,6 +26,7 @@ func (c *ApiCommand) Run(args []string) int {
 	r := mux.NewRouter()
 	r.HandleFunc("/func", api.ProjectHandler(c.Runner)).Methods("POST")
 	r.HandleFunc("/func/{id}", api.RunHandler(c.Runner)).Methods("POST")
+	r.HandleFunc("/func/{id}", api.DeleteFuncHandler(c.Runner)).Methods("DELETE")
 	r.HandleFunc("/ping", api.PingHandler()).Methods("GET")
 	http.ListenAndServe(port, r)
 	return 0

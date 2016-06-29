@@ -37,13 +37,11 @@ func RunHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Reques
 		logrus.Infof("Run function from image %s", imageName)
 		cId, err := runner.BuildContainer(imageName, t.Env)
 		if err != nil {
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-				}).Warnf("Function not fund")
-				errorRender(500, 4317, err, w)
-				return
-			}
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Warnf("Function not fund")
+			errorRender(500, 4317, err, w)
+			return
 		}
 		logrus.WithFields(logrus.Fields{
 			"container": cId,

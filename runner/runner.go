@@ -8,4 +8,5 @@ type Runner interface {
 	CommitContainer(containerId string) (string, error)
 	PullImage(repository string) error
 	RemoveContainer(containerId string) error
+	DeleteImage(containerId string) error
 }

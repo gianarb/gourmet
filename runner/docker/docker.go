@@ -98,6 +98,16 @@ func (dr *DockerRunner) Exec(containerId string, command []string) (*stream.Buff
 	return &oStream, nil, nil
 }
 
+func (dr *DockerRunner) DeleteImage(name string) error {
+	err := dr.Docker.RemoveImageExtended(name, docker.RemoveImageOptions{
+		Force: true,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (dr *DockerRunner) RemoveContainer(containerId string) error {
 	err := dr.Docker.KillContainer(docker.KillContainerOptions{ID: containerId})
 	err = dr.Docker.RemoveContainer(docker.RemoveContainerOptions{ID: containerId, RemoveVolumes: true})
