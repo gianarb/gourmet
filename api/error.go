@@ -6,8 +6,8 @@ import (
 )
 
 type Error struct {
-	Message error
-	code    int
+	Message string `json:"message"`
+	code    int    `json:"code"`
 }
 
 func (er *Error) ToJson() []byte {
@@ -17,6 +17,9 @@ func (er *Error) ToJson() []byte {
 
 func errorRender(statusCode int, intCode int, err error, w http.ResponseWriter) {
 	w.WriteHeader(statusCode)
-	errStruct := Error{err, intCode}
+	errStruct := Error{
+		Message: err.Error(),
+		code:    intCode,
+	}
 	w.Write(errStruct.ToJson())
 }

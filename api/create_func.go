@@ -19,7 +19,7 @@ type ProjectResponse struct {
 	RunId string
 }
 
-func ProjectHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Request) {
+func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		responseStruct := ProjectResponse{}
 		w.Header().Set("Content-Type", "application/json")

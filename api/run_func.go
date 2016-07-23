@@ -19,7 +19,7 @@ type RunRequest struct {
 	Env []string
 }
 
-func RunHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Request) {
+func RunFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/text")
 		decoder := json.NewDecoder(r.Body)
@@ -45,7 +45,7 @@ func RunHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Reques
 		}
 		logrus.WithFields(logrus.Fields{
 			"container": cId,
-		}).Info("Run function")
+		}).Infof("Running command %s", []string{"bin/console"})
 		g, b, err := runner.Exec(cId, []string{"bin/console"})
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
