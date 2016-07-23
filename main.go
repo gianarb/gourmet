@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	logrus.Info("Gourmet started")
 	c := cli.NewCLI("gourmet", "0.0.0")
 	c.Args = os.Args[1:]
 
