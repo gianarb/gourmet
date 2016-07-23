@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gianarb/gourmet/runner/stream"
 )
@@ -42,7 +43,37 @@ func (dr *DockerRunner) PullImage(id string) error {
 	return nil
 }
 
-func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, error) {
+func (dr *DockerRunner) RunFunc(img string, envVars []string) error {
+	container, err := dr.Docker.CreateContainer(docker.CreateContainerOptions{
+		Name: "",
+		Config: &docker.Config{
+			Cmd:          []string{"bin/console"},
+			Image:        img,
+			WorkingDir:   "/root",
+			AttachStdout: true,
+			AttachStderr: true,
+			Env:          envVars,
+		},
+		HostConfig:       nil,
+		NetworkingConfig: nil,
+	})
+
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"container": container.ID,
+			"error":     err,
+		}).Warn("Function failed")
+		return err
+	}
+	logrus.WithFields(logrus.Fields{
+		"container": container.ID,
+		"func":      img,
+	}).Info("Func runned")
+
+	return nil
+}
+
+func (dr *DockerRunner) CreateFunc(img string, envVars []string, source string) (string, error) {
 	container, err := dr.Docker.CreateContainer(docker.CreateContainerOptions{
 		Name: "",
 		Config: &docker.Config{
@@ -68,34 +99,26 @@ func (dr *DockerRunner) BuildContainer(img string, envVars []string) (string, er
 	if err != nil {
 		return "", err
 	}
-	return container.ID, nil
-}
+	_, _, err = dr.exec(container.ID, []string{"wget", source})
 
-func (dr *DockerRunner) Exec(containerId string, command []string) (*stream.BufferStream, *stream.BufferStream, error) {
-	oStream := stream.BufferStream{&bytes.Buffer{}}
-	eStream := stream.BufferStream{&bytes.Buffer{}}
-	exec, err := dr.Docker.CreateExec(docker.CreateExecOptions{
-		Container:    containerId,
-		AttachStdin:  true,
-		AttachStdout: true,
-		AttachStderr: true,
-		Tty:          false,
-		Cmd:          command,
-	})
+	logrus.WithFields(logrus.Fields{
+		"container": container,
+	}).Info("Function downloaded")
+
 	if err != nil {
-		return nil, nil, err
+		logrus.WithFields(logrus.Fields{
+			"container": container,
+			"error":     err,
+		}).Warnf("We had a problem to download your source, please check your link %s", source)
 	}
-	err = dr.Docker.StartExec(exec.ID, docker.StartExecOptions{
-		Detach:       false,
-		Tty:          false,
-		RawTerminal:  true,
-		OutputStream: oStream,
-		ErrorStream:  eStream,
-	})
+	_, _, err = dr.exec(container.ID, []string{"unzip", "gourmet.zip", "-d", "."})
 	if err != nil {
-		return nil, &eStream, err
+		logrus.WithFields(logrus.Fields{
+			"container": container.ID,
+			"error":     err,
+		}).Warn("We can not unzip your source")
 	}
-	return &oStream, nil, nil
+	return container.ID, nil
 }
 
 func (dr *DockerRunner) DeleteImage(name string) error {
@@ -173,4 +196,31 @@ func randStringRunes(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+func (dr *DockerRunner) exec(containerId string, command []string) (*stream.BufferStream, *stream.BufferStream, error) {
+	oStream := stream.BufferStream{&bytes.Buffer{}}
+	eStream := stream.BufferStream{&bytes.Buffer{}}
+	exec, err := dr.Docker.CreateExec(docker.CreateExecOptions{
+		Container:    containerId,
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty:          false,
+		Cmd:          command,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	err = dr.Docker.StartExec(exec.ID, docker.StartExecOptions{
+		Detach:       false,
+		Tty:          false,
+		RawTerminal:  true,
+		OutputStream: oStream,
+		ErrorStream:  eStream,
+	})
+	if err != nil {
+		return nil, &eStream, err
+	}
+	return &oStream, nil, nil
 }

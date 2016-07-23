@@ -34,7 +34,7 @@ func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 
 		logrus.Infof("Started new build %s", t.Img)
 
-		containerId, err := runner.BuildContainer(t.Img, []string{})
+		containerId, err := runner.CreateFunc(t.Img, []string{}, t.Source)
 		if err != nil {
 			err := runner.PullImage(t.Img)
 			if err != nil {
@@ -44,7 +44,7 @@ func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 				errorRender(500, 4312, err, w)
 				return
 			}
-			containerId, err = runner.BuildContainer(fmt.Sprintf("%s/%s", registry, t.Img), []string{})
+			containerId, err = runner.CreateFunc(fmt.Sprintf("%s/%s", registry, t.Img), []string{}, t.Source)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
@@ -53,26 +53,6 @@ func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 				runner.RemoveContainer(containerId)
 				return
 			}
-		}
-
-		_, _, err = runner.Exec(containerId, []string{"wget", t.Source})
-
-		logrus.WithFields(logrus.Fields{
-			"container": containerId,
-		}).Info("Function downloaded")
-
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"container": containerId,
-				"error":     err,
-			}).Warnf("We had a problem to download your source, please check your link %s", t.Source)
-		}
-		_, _, err = runner.Exec(containerId, []string{"unzip", "gourmet.zip", "-d", "."})
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"container": containerId,
-				"error":     err,
-			}).Warn("We can not unzip your source")
 		}
 
 		logrus.WithFields(logrus.Fields{

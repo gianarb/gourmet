@@ -1,10 +1,8 @@
 package runner
 
-import "github.com/gianarb/gourmet/runner/stream"
-
 type Runner interface {
-	BuildContainer(img string, envVars []string) (string, error)
-	Exec(containerId string, command []string) (*stream.BufferStream, *stream.BufferStream, error)
+	CreateFunc(img string, envVars []string, source string) (string, error)
+	RunFunc(id string, envVars []string) error
 	CommitContainer(containerId string) (string, error)
 	PullImage(repository string) error
 	RemoveContainer(containerId string) error
