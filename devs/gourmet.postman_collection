@@ -1,71 +1,74 @@
 {
-	"variables": [],
-	"info": {
-		"name": "gourmet",
-		"_postman_id": "18c053ee-2b13-cb41-27c7-b96d85c71885",
-		"description": "",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
-	},
-	"item": [
+	"id": "18c053ee-2b13-cb41-27c7-b96d85c71885",
+	"name": "gourmet",
+	"description": "",
+	"order": [
+		"a14958a1-478d-64f8-463f-84d97e912cda",
+		"8e36d769-bc8f-a097-2713-b636cbe46da6",
+		"38991ee1-49c7-5eb2-177f-03d6dd4c2ef7"
+	],
+	"folders": [],
+	"timestamp": 0,
+	"owner": "17560",
+	"public": false,
+	"published": false,
+	"requests": [
 		{
-			"name": "Create Func",
-			"request": {
-				"url": "http://localhost:8000/func",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "ping",
-			"request": {
-				"url": "http://localhost:8000/ping",
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
+			"id": "38991ee1-49c7-5eb2-177f-03d6dd4c2ef7",
+			"headers": "Content-Type: application/json\n",
+			"url": "http://localhost:8000/func/xvlbzgbaic",
+			"pathVariables": {},
+			"preRequestScript": "",
+			"method": "DELETE",
+			"collectionId": "18c053ee-2b13-cb41-27c7-b96d85c71885",
+			"data": [],
+			"dataMode": "raw",
 			"name": "Delete Func",
-			"request": {
-				"url": "http://localhost:8000/func/xvlbzgbaic",
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"description": ""
-			},
-			"response": []
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1467206414102,
+			"version": 2,
+			"responses": [],
+			"tests": "",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": ""
+		},
+		{
+			"id": "8e36d769-bc8f-a097-2713-b636cbe46da6",
+			"headers": "Content-Type: application/json\n",
+			"url": "http://localhost:8000/health",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"tests": "",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1469334546247,
+			"name": "health",
+			"description": "",
+			"collectionId": "18c053ee-2b13-cb41-27c7-b96d85c71885",
+			"rawModeData": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
+		},
+		{
+			"id": "a14958a1-478d-64f8-463f-84d97e912cda",
+			"headers": "Content-Type: application/json\n",
+			"url": "http://localhost:8000/func",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"tests": "",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1467204257872,
+			"name": "Create Func",
+			"description": "",
+			"collectionId": "18c053ee-2b13-cb41-27c7-b96d85c71885",
+			"rawModeData": "{\n    \"source\": \"https://s3-eu-west-1.amazonaws.com/gourmet-php-deploy/gourmet.zip\",\n    \"img\": \"gianarb/php:7.0.0RC6\"\n}"
 		}
 	]
 }

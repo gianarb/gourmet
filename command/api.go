@@ -27,7 +27,7 @@ func (c *ApiCommand) Run(args []string) int {
 	r.HandleFunc("/func", api.CreateFuncHandler(c.Runner)).Methods("POST")
 	r.HandleFunc("/func/{id}", api.RunFuncHandler(c.Runner)).Methods("POST")
 	r.HandleFunc("/func/{id}", api.DeleteFuncHandler(c.Runner)).Methods("DELETE")
-	r.HandleFunc("/ping", api.PingHandler()).Methods("GET")
+	r.HandleFunc("/health", api.HealthHandler()).Methods("GET")
 	http.ListenAndServe(port, r)
 	return 0
 }
