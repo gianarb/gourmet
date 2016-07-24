@@ -26,16 +26,16 @@ POST /func
 ```
 * `img` is the name of docker image to use how started point
 * `source` is the artifact of your script, it should be contain an executable console entrypoint `bin/console`
-This function return the function's id `RunId`
+This function return the function's id `FuncId`
 ```
 {
-    "RunId": "34gaw23t2"
+    "FuncId": "34gaw23t2"
 }
 ```
 
 
 ```json
-POST /func/{RunId}
+POST /func/{FuncId}
 
 {
     "env": [

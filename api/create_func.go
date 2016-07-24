@@ -16,7 +16,7 @@ type StartBuildRequest struct {
 }
 
 type ProjectResponse struct {
-	RunId string
+	FuncId string `json:"funcId"`
 }
 
 func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 		logrus.WithFields(logrus.Fields{
 			"container": containerId,
 		}).Info("Container removed")
-		responseStruct.RunId = image
+		responseStruct.FuncId = image
 		json, _ := json.Marshal(responseStruct)
 		w.WriteHeader(200)
 		w.Write(json)
