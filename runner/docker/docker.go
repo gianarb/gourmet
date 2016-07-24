@@ -32,6 +32,7 @@ func (dr *DockerRunner) CommitContainer(id string) (string, error) {
 			return "", err
 		}
 	}
+	dr.removeContainer(id)
 	return imageId, nil
 }
 
@@ -43,7 +44,7 @@ func (dr *DockerRunner) PullImage(id string) error {
 	return nil
 }
 
-func (dr *DockerRunner) RunFunc(img string, envVars []string) error {
+func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
 	container, err := dr.Docker.CreateContainer(docker.CreateContainerOptions{
 		Name: "",
 		Config: &docker.Config{
@@ -63,14 +64,33 @@ func (dr *DockerRunner) RunFunc(img string, envVars []string) error {
 			"container": container.ID,
 			"error":     err,
 		}).Warn("Function failed")
-		return err
+		return "", err
+	}
+	s := stream.BufferStream{&bytes.Buffer{}}
+	opts := docker.LogsOptions{
+		Container:    container.ID,
+		OutputStream: s,
+		Follow:       true,
+		RawTerminal:  true,
+		Stdout:       true,
+		Stderr:       true,
+		Timestamps:   true,
+		Tail:         "100",
+	}
+	err = dr.Docker.Logs(opts)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"container": container.ID,
+			"error":     err,
+		}).Warn("Function failed")
 	}
 	logrus.WithFields(logrus.Fields{
 		"container": container.ID,
 		"func":      img,
 	}).Info("Func runned")
+	dr.removeContainer(container.ID)
 
-	return nil
+	return s.String(), nil
 }
 
 func (dr *DockerRunner) CreateFunc(img string, envVars []string, source string) (string, error) {
@@ -121,7 +141,7 @@ func (dr *DockerRunner) CreateFunc(img string, envVars []string, source string) 
 	return container.ID, nil
 }
 
-func (dr *DockerRunner) DeleteImage(name string) error {
+func (dr *DockerRunner) DeleteFunc(name string) error {
 	err := dr.Docker.RemoveImageExtended(name, docker.RemoveImageOptions{
 		Force: true,
 	})
@@ -131,7 +151,7 @@ func (dr *DockerRunner) DeleteImage(name string) error {
 	return nil
 }
 
-func (dr *DockerRunner) RemoveContainer(containerId string) error {
+func (dr *DockerRunner) removeContainer(containerId string) error {
 	err := dr.Docker.KillContainer(docker.KillContainerOptions{ID: containerId})
 	err = dr.Docker.RemoveContainer(docker.RemoveContainerOptions{ID: containerId, RemoveVolumes: true})
 	if err != nil {

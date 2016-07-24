@@ -50,7 +50,6 @@ func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 					"error": err,
 				}).Warnf("Impossibile to create a new container from this image %s", t.Img)
 				errorRender(500, 4317, err, w)
-				runner.RemoveContainer(containerId)
 				return
 			}
 		}
@@ -66,10 +65,8 @@ func CreateFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 				"error":     err,
 			}).Warn("We can not push this container to the registry")
 			errorRender(500, 4310, err, w)
-			runner.RemoveContainer(containerId)
 			return
 		}
-		runner.RemoveContainer(containerId)
 		logrus.WithFields(logrus.Fields{
 			"container": containerId,
 		}).Info("Container removed")

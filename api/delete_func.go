@@ -24,7 +24,7 @@ func DeleteFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http
 			imageName = fmt.Sprintf("%s/%s", os.Getenv("GOURMET_REGISTRY_URL"), imageName)
 		}
 		logrus.Infof("Delete function %s", imageName)
-		err := runner.DeleteImage(imageName)
+		err := runner.DeleteFunc(imageName)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,

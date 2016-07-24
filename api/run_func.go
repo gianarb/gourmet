@@ -35,13 +35,13 @@ func RunFuncHandler(runner runner.Runner) func(w http.ResponseWriter, r *http.Re
 			imageName = fmt.Sprintf("%s/%s", os.Getenv("GOURMET_REGISTRY_URL"), imageName)
 		}
 		logrus.Infof("Run function from image %s", imageName)
-		err := runner.RunFunc(imageName, t.Env)
+		s, err := runner.RunFunc(imageName, t.Env)
 		if err != nil {
 			errorRender(500, 4317, err, w)
 			return
 		}
-		//runner.RemoveContainer(cId)
 		w.WriteHeader(200)
 		logrus.WithFields(logrus.Fields{}).Info("Function completed")
+		w.Write([]byte(s))
 	}
 }
