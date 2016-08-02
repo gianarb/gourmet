@@ -58,7 +58,6 @@ func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
 		HostConfig:       nil,
 		NetworkingConfig: nil,
 	})
-
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"container": container.ID,
@@ -66,18 +65,14 @@ func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
 		}).Warn("Function failed")
 		return "", err
 	}
-	s := stream.BufferStream{&bytes.Buffer{}}
-	opts := docker.LogsOptions{
-		Container:    container.ID,
-		OutputStream: s,
-		Follow:       true,
-		RawTerminal:  true,
-		Stdout:       true,
-		Stderr:       true,
-		Timestamps:   true,
-		Tail:         "100",
+	err = dr.Docker.StartContainer(container.ID, nil)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"container": container.ID,
+			"error":     err,
+		}).Warn("Function failed")
+		return "", err
 	}
-	err = dr.Docker.Logs(opts)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"container": container.ID,
@@ -89,8 +84,7 @@ func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
 		"func":      img,
 	}).Info("Func runned")
 	dr.removeContainer(container.ID)
-
-	return s.String(), nil
+	return "", nil
 }
 
 func (dr *DockerRunner) CreateFunc(img string, envVars []string, source string) (string, error) {
