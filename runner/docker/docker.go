@@ -44,7 +44,7 @@ func (dr *DockerRunner) PullImage(id string) error {
 	return nil
 }
 
-func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
+func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, int, error) {
 	container, err := dr.Docker.CreateContainer(docker.CreateContainerOptions{
 		Name: "",
 		Config: &docker.Config{
@@ -63,7 +63,7 @@ func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
 			"container": container.ID,
 			"error":     err,
 		}).Warn("Function failed")
-		return "", err
+		return "", 1, err
 	}
 	err = dr.Docker.StartContainer(container.ID, nil)
 	if err != nil {
@@ -71,20 +71,32 @@ func (dr *DockerRunner) RunFunc(img string, envVars []string) (string, error) {
 			"container": container.ID,
 			"error":     err,
 		}).Warn("Function failed")
-		return "", err
+		return "", 1, err
 	}
+	status, err := dr.Docker.WaitContainer(container.ID)
+	var stdout, stderr bytes.Buffer
+	logsOpts := docker.LogsOptions{
+		Container:    container.ID,
+		OutputStream: &stdout,
+		ErrorStream:  &stderr,
+		Stdout:       true,
+		Stderr:       true,
+	}
+	err = dr.Docker.Logs(logsOpts)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"container": container.ID,
 			"error":     err,
-		}).Warn("Function failed")
+		}).Warn("Problem to grab func logs")
 	}
+
 	logrus.WithFields(logrus.Fields{
 		"container": container.ID,
 		"func":      img,
 	}).Info("Func runned")
+
 	dr.removeContainer(container.ID)
-	return "", nil
+	return stdout.String(), status, nil
 }
 
 func (dr *DockerRunner) CreateFunc(img string, envVars []string, source string) (string, error) {
