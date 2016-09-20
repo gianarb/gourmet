@@ -125,7 +125,7 @@ func (dr *DockerRunner) CreateFunc(img string, envVars []string, source string) 
 	if err != nil {
 		return "", err
 	}
-	_, _, err = dr.exec(container.ID, []string{"wget", source})
+	_, _, err = dr.exec(container.ID, []string{"wget", "-O", "./gourmet.zip", source})
 
 	logrus.WithFields(logrus.Fields{
 		"container": container,
